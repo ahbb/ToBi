@@ -4,8 +4,6 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from dotenv import load_dotenv
 import os
 
-from config import API_URL
-
 FASTAPI_GEOCODE_URL = "http://localhost:8000/reverse_geocode"
 FASTAPI_NEAREST_URL = "http://localhost:8000/nearest"
 
@@ -101,7 +99,8 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     print("Bot is running...")
-    app.run_polling()
+    # app.run_polling()
+    return app
 
 if __name__ == "__main__":
     main()
