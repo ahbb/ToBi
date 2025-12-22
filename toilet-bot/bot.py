@@ -99,8 +99,8 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     print("Bot is running...")
-    # app.run_polling()
-    return app
+    app.run_polling()
+    # return app
 
 if __name__ == "__main__":
     main()

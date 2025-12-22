@@ -1,6 +1,10 @@
 # ToBi
 Toilets with bidets Singapore
 
+### Demo (22/12/2025)
+Here is the latest demo of the bot in action.
+[![Watch the video](https://img.youtube.com/vi/pmxCAlJjCME/maxresdefault.jpg)](https://youtube.com/shorts/pmxCAlJjCME)
+
 <!-- GETTING STARTED -->
 ## Getting Started
 
