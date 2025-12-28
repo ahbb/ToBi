@@ -31,9 +31,8 @@ TOILETS = load_toilets()
 # =====================
 load_dotenv()
 BOT_TOKEN = os.getenv("BIDETBUDDY_TOKEN")
-BOT_TOKEN_ENCODED = urllib.parse.quote(BOT_TOKEN, safe='')
 
-WEBHOOK_PATH = f"/telegram/webhook/{BOT_TOKEN_ENCODED}"
+WEBHOOK_PATH = "/telegram/webhook"
 WEBHOOK_URL = f"https://tobi-4qvm.onrender.com{WEBHOOK_PATH}"
 
 tg_app = ApplicationBuilder().token(BOT_TOKEN).build()
