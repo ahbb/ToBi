@@ -15,8 +15,8 @@ FASTAPI_GEOCODE_URL = "http://localhost:8000/reverse_geocode"
 FASTAPI_NEAREST_URL = "http://localhost:8000/nearest"
 
 # Deployed
-FASTAPI_GEOCODE_URL_LIVE = "https://tobi-rurx.onrender.com/reverse_geocode"
-FASTAPI_NEAREST_URL_LIVE = "https://tobi-rurx.onrender.com/nearest"
+FASTAPI_GEOCODE_URL_LIVE = "https://tobi-4qvm.onrender.com/reverse_geocode"
+FASTAPI_NEAREST_URL_LIVE = "https://tobi-4qvm.onrender.com/nearest"
 
 # =====================
 # FastAPI setup
