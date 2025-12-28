@@ -18,13 +18,8 @@ Install required packages
 ## Running the bot
 
 ```sh
-cd toilet-api
-python -m uvicorn app:app --reload
-```
-
-```sh
 cd toilet-bot
-python bot.py
+python -m uvicorn bot:app --reload
 ```
 
 <!-- ACKNOWLEDGMENTS -->
