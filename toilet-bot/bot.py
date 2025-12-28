@@ -3,6 +3,10 @@ from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
 import os
+from fastapi import FastAPI, Request
+from utils import load_toilets, find_k_nearest_toilets
+from pydantic import BaseModel
+from geopy.geocoders import Nominatim
 
 # Local
 FASTAPI_GEOCODE_URL = "http://localhost:8000/reverse_geocode"
@@ -12,9 +16,40 @@ FASTAPI_NEAREST_URL = "http://localhost:8000/nearest"
 FASTAPI_GEOCODE_URL_LIVE = https://tobi-rurx.onrender.com/reverse_geocode
 FASTAPI_NEAREST_URL_LIVE = https://tobi-rurx.onrender.com/nearest
 
+# =====================
+# FastAPI setup
+# =====================
+app = FastAPI()
+geolocator = Nominatim(user_agent="BidetBuddyBot")
+TOILETS = load_toilets()
+
+# =====================
+# Telegram setup
+# =====================
 load_dotenv()
 BOT_TOKEN = os.getenv("BIDETBUDDY_TOKEN")
+WEBHOOK_PATH = f"/telegram/webhook/{BOT_TOKEN}"
+WEBHOOK_URL = f"https://tobi-rurx.onrender.com{WEBHOOK_PATH}"
 
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+# Location and text handlers
+app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+
+
+# =====================
+# Models
+# =====================
+class Location(BaseModel):
+    latitude: float
+    longitude: float
+
+
+# =====================
+# Telegram handlers
+# =====================
 # /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -93,19 +128,64 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Edit the "Finding…" message so it becomes the final result (only show finding message once)
     await finding_msg.edit_text(message_text, parse_mode="Markdown")
 
-def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # Commands
-    app.add_handler(CommandHandler("start", start))
 
-    # Location and text handlers
-    app.add_handler(MessageHandler(filters.LOCATION, handle_location))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+# =====================
+# FastAPI endpoints
+# =====================
+@app.get("/")
+def root():
+    return {"status": "ok", "total_toilets": len(TOILETS)}
 
-    print("Bot is running...")
-    app.run_polling()
-    # return app
+@app.get("/all")
+def all_toilets():
+    return TOILETS
 
-if __name__ == "__main__":
-    main()
+@app.get("/nearest")
+def nearest(lat: float, lon: float, k: int = 3):
+    results = find_k_nearest_toilets(lat, lon, TOILETS, k)
+
+    output = []
+    for toilet, dist in results:
+        output.append({
+            "toilet": toilet,
+            "distances": round(dist, 2)
+        })
+
+    return {"results": output}
+
+# Lat long -> Address
+@app.post("/reverse_geocode")
+def reverse_geocode(loc: Location):
+    try:
+        result = geolocator.reverse((loc.latitude, loc.longitude))
+        return {"address": result.address}
+    except Exception:
+        return {"address": ""} # If geocode fails, return empty string
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "service": "BidetBuddy API"
+    }
+
+
+# =====================
+# Webhook lifecycle
+# =====================
+@app.on_event("startup")
+async def on_startup():
+    await app.initialize()
+    await app.bot.set_webhook(WEBHOOK_URL)
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await app.shutdown()
+
+@app.post(WEBHOOK_PATH)
+async def telegram_webhook(request: Request):
+    data = await request.json()
+    update = Update.de_json(data, app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
+    await app.process_update(update)
+    return {"ok": True}

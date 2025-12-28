@@ -50,3 +50,4 @@ def health_check():
         "status": "ok",
         "service": "BidetBuddy API"
     }
+
