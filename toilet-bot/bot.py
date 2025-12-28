@@ -8,15 +8,15 @@ from utils import load_toilets, find_k_nearest_toilets
 from pydantic import BaseModel
 from geopy.geocoders import Nominatim
 
-# Command: python -m uvicorn bot:app --reload
+# Command in render: python -m uvicorn bot:app --reload --port $PORT --host 0.0.0.0
 
 # Local
 FASTAPI_GEOCODE_URL = "http://localhost:8000/reverse_geocode"
 FASTAPI_NEAREST_URL = "http://localhost:8000/nearest"
 
 # Deployed
-FASTAPI_GEOCODE_URL_LIVE = https://tobi-rurx.onrender.com/reverse_geocode
-FASTAPI_NEAREST_URL_LIVE = https://tobi-rurx.onrender.com/nearest
+FASTAPI_GEOCODE_URL_LIVE = "https://tobi-rurx.onrender.com/reverse_geocode"
+FASTAPI_NEAREST_URL_LIVE = "https://tobi-rurx.onrender.com/nearest"
 
 # =====================
 # FastAPI setup
@@ -34,12 +34,6 @@ WEBHOOK_PATH = f"/telegram/webhook/{BOT_TOKEN}"
 WEBHOOK_URL = f"https://tobi-rurx.onrender.com{WEBHOOK_PATH}"
 
 tg_app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-tg_app.add_handler(CommandHandler("start", start))
-# Location and text handlers
-tg_app.add_handler(MessageHandler(filters.LOCATION, handle_location))
-tg_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-
 
 # =====================
 # Models
@@ -128,8 +122,13 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = "\n".join(message_lines)
 
     # Edit the "Finding…" message so it becomes the final result (only show finding message once)
-    await finding_msg.edit_text(message_text, parse_mode="Markdown")
+    await finding_msg.edit_text(message_text, parse_mode="Markdown")\
 
+# Telegram handlers
+tg_app.add_handler(CommandHandler("start", start))
+# Location and text handlers
+tg_app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+tg_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
 
 # =====================
