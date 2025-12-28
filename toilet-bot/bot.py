@@ -177,12 +177,24 @@ def health_check():
 # =====================
 # Webhook lifecycle
 # =====================
+@app.on_event("startup")
+async def startup():
+    # Initialize bot
+    await tg_app.initialize()
+    await tg_app.start()
+    print("Telegram bot started and ready for webhook updates")
+
+
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
     data = await request.json()
     update = Update.de_json(data, tg_app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
     await tg_app.update_queue.put(update)  # push to bot queue
     return {"ok": True}
+
+@app.on_event("shutdown")
+async def shutdown():
+    await tg_app.stop()
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
