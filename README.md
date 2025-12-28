@@ -14,7 +14,7 @@ Here is the latest demo of the bot in action.
 ### Prerequisites
 Install required packages
 ```sh
-  npm install requirements.txt
+  pip install -r requirements.txt
 ```
 
 <!-- RUNNING BOT -->
