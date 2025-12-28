@@ -1,5 +1,5 @@
 # ToBi
-Toilets with bidets Singapore
+A Telegram bot that allows users to locate the nearest bidet-equipped toilets.
 
 ### Demo (22/12/2025)
 Here is the latest demo of the bot in action.
