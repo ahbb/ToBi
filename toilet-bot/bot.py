@@ -184,6 +184,8 @@ async def startup():
     print("Telegram bot started and ready for webhook updates")
 
 
+# setup telegram webhook using: curl -F "url=https://your-render-url.com/webhook" https://api.telegram.org/bot<BOT_TOKEN>/setWebhook
+# this allows Telegram to send updates to the fastapi webhook/endpoint
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
     data = await request.json()
