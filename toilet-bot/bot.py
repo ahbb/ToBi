@@ -1,4 +1,3 @@
-import requests
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
@@ -9,6 +8,7 @@ from pydantic import BaseModel
 from geopy.geocoders import Nominatim
 import urllib.parse
 import uvicorn
+import httpx
 
 # Command in render: python -m uvicorn bot:app --reload --port $PORT --host 0.0.0.0
 
@@ -91,40 +91,39 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lon = user_location.longitude
 
     # Call FastAPI /nearest (top 3)
-    resp = requests.get(FASTAPI_NEAREST_URL_LIVE, params={"lat": lat, "lon": lon}).json()
-    results = resp.get("results", [])
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(FASTAPI_NEAREST_URL_LIVE, params={"lat": lat, "lon": lon}).json()
+        results = resp.json().get("results", [])
 
-    if not results:
-        await update.message.reply_text("❌ No toilets found nearby.")
-        return
+        if not results:
+            await update.message.reply_text("❌ No toilets found nearby.")
+            return
 
-    message_lines = ["🚽 *Nearest Toilets with Bidet:* \n"]
-    for idx, item in enumerate(results, start=1):
-        toilet = item["toilet"]
-        distance = item["distances"]
+        message_lines = ["🚽 *Nearest Toilets with Bidet:* \n"]
+        for idx, item in enumerate(results, start=1):
+            toilet = item["toilet"]
+            distance = item["distances"]
 
-        # Get address from reverse geocoding
-        try:
-            geo_resp = requests.post(
-                FASTAPI_GEOCODE_URL_LIVE,
-                json={"latitude": toilet['lat'],
-                      "longitude": toilet['lon']}
-            ).json()
-            address = geo_resp.get("address", "Address not found")
-        except Exception:
-            address = ""
+            # Get address from reverse geocoding
+            try:
+                geo_resp = await client.post(
+                    FASTAPI_GEOCODE_URL_LIVE,
+                    json={"latitude": toilet['lat'],
+                        "longitude": toilet['lon']}
+                ).json()
+                address = geo_resp.json().get("address", "Address not found")
+            except Exception:
+                address = ""
 
-        # Add one toilet to message
-        message_lines.append(
-            f"{idx}️⃣ *{toilet['name']}*\n"
-            f"📍 Address: {address}\n"
-            f"🚶‍♂️ Approx *{distance}km* away\n"
-        )
-
-    message_text = "\n".join(message_lines)
+            # Add one toilet to message
+            message_lines.append(
+                f"{idx}️⃣ *{toilet['name']}*\n"
+                f"📍 Address: {address}\n"
+                f"🚶‍♂️ Approx *{distance}km* away\n"
+            )
 
     # Edit the "Finding…" message so it becomes the final result (only show finding message once)
-    await finding_msg.edit_text(message_text, parse_mode="Markdown")\
+    await finding_msg.edit_text("\n".join(message_lines), parse_mode="Markdown")
 
 # Telegram handlers
 tg_app.add_handler(CommandHandler("start", start))
