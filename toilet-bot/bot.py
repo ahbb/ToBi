@@ -32,7 +32,7 @@ TOILETS = load_toilets()
 load_dotenv()
 BOT_TOKEN = os.getenv("BIDETBUDDY_TOKEN")
 
-WEBHOOK_PATH = "https://tobi-4qvm.onrender.com/webhook"
+WEBHOOK_PATH = "/webhook"
 
 tg_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
