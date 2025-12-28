@@ -32,8 +32,7 @@ TOILETS = load_toilets()
 load_dotenv()
 BOT_TOKEN = os.getenv("BIDETBUDDY_TOKEN")
 
-WEBHOOK_PATH = "/telegram/webhook"
-WEBHOOK_URL = f"https://tobi-4qvm.onrender.com{WEBHOOK_PATH}"
+WEBHOOK_PATH = "https://tobi-4qvm.onrender.com/webhook"
 
 tg_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -177,18 +176,9 @@ def health_check():
 # =====================
 # Webhook lifecycle
 # =====================
-@app.on_event("startup")
-async def on_startup():
-    await tg_app.initialize()
-    await tg_app.bot.set_webhook(WEBHOOK_URL)
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    await tg_app.shutdown()
-
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
     data = await request.json()
     update = Update.de_json(data, tg_app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
-    await tg_app.process_update(update)
+    await tg_app.update_queue.put(update)  # push to bot queue
     return {"ok": True}
