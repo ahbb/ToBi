@@ -4,8 +4,13 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from dotenv import load_dotenv
 import os
 
+# Local
 FASTAPI_GEOCODE_URL = "http://localhost:8000/reverse_geocode"
 FASTAPI_NEAREST_URL = "http://localhost:8000/nearest"
+
+# Deployed
+FASTAPI_GEOCODE_URL_LIVE = https://tobi-rurx.onrender.com/reverse_geocode
+FASTAPI_NEAREST_URL_LIVE = https://tobi-rurx.onrender.com/nearest
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BIDETBUDDY_TOKEN")
@@ -53,7 +58,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lon = user_location.longitude
 
     # Call FastAPI /nearest (top 3)
-    resp = requests.get(FASTAPI_NEAREST_URL, params={"lat": lat, "lon": lon}).json()
+    resp = requests.get(FASTAPI_NEAREST_URL_LIVE, params={"lat": lat, "lon": lon}).json()
     results = resp.get("results", [])
 
     if not results:
@@ -68,7 +73,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Get address from reverse geocoding
         try:
             geo_resp = requests.post(
-                FASTAPI_GEOCODE_URL,
+                FASTAPI_GEOCODE_URL_LIVE,
                 json={"latitude": toilet['lat'],
                       "longitude": toilet['lon']}
             ).json()
