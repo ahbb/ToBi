@@ -8,6 +8,8 @@ from utils import load_toilets, find_k_nearest_toilets
 from pydantic import BaseModel
 from geopy.geocoders import Nominatim
 
+# Command: python -m uvicorn bot:app --reload
+
 # Local
 FASTAPI_GEOCODE_URL = "http://localhost:8000/reverse_geocode"
 FASTAPI_NEAREST_URL = "http://localhost:8000/nearest"
@@ -31,12 +33,12 @@ BOT_TOKEN = os.getenv("BIDETBUDDY_TOKEN")
 WEBHOOK_PATH = f"/telegram/webhook/{BOT_TOKEN}"
 WEBHOOK_URL = f"https://tobi-rurx.onrender.com{WEBHOOK_PATH}"
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+tg_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
+tg_app.add_handler(CommandHandler("start", start))
 # Location and text handlers
-app.add_handler(MessageHandler(filters.LOCATION, handle_location))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+tg_app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+tg_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
 
 # =====================
@@ -176,16 +178,16 @@ def health_check():
 # =====================
 @app.on_event("startup")
 async def on_startup():
-    await app.initialize()
-    await app.bot.set_webhook(WEBHOOK_URL)
+    await tg_app.initialize()
+    await tg_app.bot.set_webhook(WEBHOOK_URL)
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    await app.shutdown()
+    await tg_app.shutdown()
 
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
     data = await request.json()
-    update = Update.de_json(data, app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
-    await app.process_update(update)
+    update = Update.de_json(data, tg_app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
+    await tg_app.process_update(update)
     return {"ok": True}
