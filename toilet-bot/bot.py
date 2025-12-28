@@ -8,6 +8,7 @@ from utils import load_toilets, find_k_nearest_toilets
 from pydantic import BaseModel
 from geopy.geocoders import Nominatim
 import urllib.parse
+import uvicorn
 
 # Command in render: python -m uvicorn bot:app --reload --port $PORT --host 0.0.0.0
 
@@ -182,3 +183,6 @@ async def telegram_webhook(request: Request):
     update = Update.de_json(data, tg_app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
     await tg_app.update_queue.put(update)  # push to bot queue
     return {"ok": True}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
