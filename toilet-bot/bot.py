@@ -183,7 +183,7 @@ async def on_startup():
 async def on_shutdown():
     await tg_app.shutdown()
 
-@app.post(WEBHOOK_PATH)
+@app.post(WEBHOOK_URL)
 async def telegram_webhook(request: Request):
     data = await request.json()
     update = Update.de_json(data, tg_app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
