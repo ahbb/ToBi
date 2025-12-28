@@ -92,7 +92,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Call FastAPI /nearest (top 3)
     async with httpx.AsyncClient() as client:
-        resp = await client.get(FASTAPI_NEAREST_URL_LIVE, params={"lat": lat, "lon": lon}).json()
+        resp = await client.get(FASTAPI_NEAREST_URL_LIVE, params={"lat": lat, "lon": lon})
         results = resp.json().get("results", [])
 
         if not results:
@@ -110,7 +110,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     FASTAPI_GEOCODE_URL_LIVE,
                     json={"latitude": toilet['lat'],
                         "longitude": toilet['lon']}
-                ).json()
+                )
                 address = geo_resp.json().get("address", "Address not found")
             except Exception:
                 address = ""
