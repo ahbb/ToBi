@@ -3,7 +3,7 @@ A Telegram bot that allows users to locate the nearest bidet-equipped toilets.
 
 ### Demo
 Here is the latest demo of the bot in action.
-[![Watch the video](https://img.youtube.com/vi/https://youtube.com/shorts/YmVhxuHcuZc/maxresdefault.jpg)](https://youtube.com/shorts/YmVhxuHcuZc)
+[![Watch the video](https://img.youtube.com/vi/YmVhxuHcuZc/maxresdefault.jpg)](https://youtube.com/shorts/YmVhxuHcuZc)
 
 ### Update (28/12/25)
 The bot is now live! Do check it out at @BidetBuddyBot.
