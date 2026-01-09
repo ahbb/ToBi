@@ -189,8 +189,14 @@ async def startup():
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
     data = await request.json()
-    update = Update.de_json(data, tg_app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object
-    await tg_app.update_queue.put(update)  # push to bot queue
+    update = Update.de_json(data, tg_app.bot) # Update.de_json is used to deserialize (convert from JSON) incoming Telegram update data into a usable telegram.Update object, so that handlers can understand it
+
+    # bridge between FastAPI and the Telegram bot. hands the update to python-telegram-bot's internal event loop
+    # Reads the update from update_queue
+    # Matches it against registered handlers
+    # Executes the correct handler
+    await tg_app.update_queue.put(update)
+    
     return {"ok": True}
 
 @app.on_event("shutdown")
@@ -199,3 +205,29 @@ async def shutdown():
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+
+
+# General flow
+# User sends location in Telegram
+#         ↓
+# Telegram servers
+#         ↓
+# POST https://tobi-4qvm.onrender.com/webhook
+#         ↓
+# FastAPI endpoint /webhook
+#         ↓
+# Update.de_json(...)
+#         ↓
+# tg_app.update_queue.put(update)
+#         ↓
+# python-telegram-bot dispatcher
+#         ↓
+# handle_location()
+#         ↓
+# Calls /nearest API
+#         ↓
+# Calls /reverse_geocode
+#         ↓
+# Responds to user
+
+# Telegram sends every update (messages, locations, commands) as a HTTP POST request to the fastapi server instead of the bot polling Telegram.
